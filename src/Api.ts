@@ -17,7 +17,7 @@ export const useApi = () => {
         return userId;
     }
 
-    const sendTargetId = async (target: string) => {
+    const getMessages = async (target: string) => {
         setTargetId(() => target);
         var userId = sessionStorage.getItem('userId')
         var data: TargetMessage = { user: userId, target: target }
@@ -31,5 +31,5 @@ export const useApi = () => {
         await axios.post(`${host}/api/message/send`, data)
     }
 
-    return [getUserId, sendTargetId, sendMessage]
+    return [getUserId, getMessages, sendMessage]
 }
