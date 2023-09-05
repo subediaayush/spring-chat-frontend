@@ -25,16 +25,18 @@ function App() {
     formState: { errors },
   } = useForm<Input>({
     defaultValues: {
-      targetId: 'target_id',
-      draft: 'message'
+      targetId: '',
+      draft: ''
     }
   })
 
   const { getUserId, getMessages, getMessage } = useApi()
   const { targetId, draft } = watch()
 
-  const processTarget = () => {
-    getMessages(targetId)
+  const processTarget = async () => {
+    var messages = await getMessages(targetId)
+    console.log('fetched messages for target', targetId, messages)
+    setMessages(m => messages)
   }
 
   useEffect(() => {
@@ -63,15 +65,11 @@ function App() {
       c.onConnect = () => {
         subscribe(c, `/topic/${userId}/messages`, message => setMessages(m => {
           var chat = JSON.parse(message.body)
-          return [...m, chat]
+          return [chat, ...m]
         }))
       }
 
       c.onDisconnect = () => console.log('Disconnected from server')
-
-      setValue("targetId", userId)
-      getMessages(userId)
-
 
       setClient((old) => {
         old?.deactivate()
@@ -85,9 +83,9 @@ function App() {
     return () => { client?.deactivate() }
   }, [userId])
 
-  const processDraft = async () => {
+  const processDraft = () => {
     if (draft) {
-      var message = await getMessage(draft)
+      var message = getMessage(draft)
       client?.publish({ destination: `/app/chat/${userId}`, body: JSON.stringify(message) })
       console.log('sent message', draft, JSON.stringify(message))
       reset({ draft: '' })
@@ -102,11 +100,16 @@ function App() {
         <button className='text-input-button' onClick={processTarget}>Start</button>
       </div>
 
-      <div className='border-blue-200 border-2 focus:border-4 hover:border-blue-400 rounded-md flex-grow h-full flex flex-col'>
-        <div className='flex flex-col flex-grow-0 overflow-y-scroll'>
+      <div className='border-blue-200 border-2 focus:border-4 hover:border-blue-400 rounded-md flex-grow h-full flex flex-col-reverse'>
+        <div className='flex flex-col-reverse flex-grow-0 overflow-y-scroll mx-4 my-2'>
           {messages.map(message => (
-            <div key={message.timestamp}>
-              {message.timestamp} {message.message}
+            message.from === userId ? 
+            <div key={message.timestamp} className='py-2 self-end'>
+              {(new Date(message.timestamp)).toString()} {message.message}
+            </div>
+            :
+            <div key={message.timestamp} className='py-2'>
+              {(new Date(message.timestamp)).toString()} {message.message}
             </div>
           ))}
         </div>

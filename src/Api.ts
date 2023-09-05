@@ -21,16 +21,16 @@ export const useApi = () => {
     }
 
     const getMessages = async (target: string) => {
-        console.log("Getting messages for target", target)
-        setTargetId(() => target);
         var userId = localStorage.getItem('userId')
+        console.log("Getting messages for user and target", userId, target)
+        setTargetId(() => target);
         return (await axios.get(`${host}/api/message/get?u1=${userId}&u2=${target}`)).data
     }
 
     const getMessage = (message: string) => {
         var userId = localStorage.getItem('userId') ?? ''
         var target = targetId ?? ''
-        var data: ChatMessage = { from: userId, to: target, message: message, timestamp: new Date().getUTCMilliseconds(), bucket: '' }
+        var data: ChatMessage = { from: userId, to: target, message: message, timestamp: new Date().getTime(), bucket: '' }
         console.log(data)
         return data
     }
